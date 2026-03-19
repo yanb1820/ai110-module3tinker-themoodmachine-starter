@@ -65,3 +65,9 @@ During this lab you will:
 - When debugging, print tokens, scores, or intermediate choices.
 - Ask an AI assistant to help create edge case posts or unusual wording.
 - Try examples that mislead or confuse your model. Failure cases teach you the most.
+
+---
+
+## Summary
+
+The core concept is that every label, word list, and scoring rule is a design choice, the model reflects exactly what you put in. Students most struggle at the `neutral` vs. `mixed` boundary, often mislabeling ambiguous posts and not realizing that mistake silently shapes every prediction downstream. AI was helpful for generating diverse edge cases (slang, emojis, sarcasm) but misleading on ML accuracy, it reported 100% without flagging that training-on-test-data makes that number meaningless, which is exactly the misconception to address. The sarcasm failure is the most instructive moment: it exposes the hard ceiling of word-list and bag-of-words approaches in a way students can see and reason about directly. To guide a stuck student without giving the answer, ask them to call `explain()` on the failing post and read the token list aloud — they almost always spot the problem themselves before finishing the sentence.

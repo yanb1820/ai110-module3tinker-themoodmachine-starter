@@ -23,6 +23,8 @@ POSITIVE_WORDS = [
     "chill",
     "relaxed",
     "amazing",
+    "hopeful",
+    "proud",
 ]
 
 NEGATIVE_WORDS = [
@@ -92,3 +94,25 @@ TRUE_LABELS = [
 #
 # Remember to keep them aligned:
 #   len(SAMPLE_POSTS) == len(TRUE_LABELS)
+
+SAMPLE_POSTS += [
+    "Lowkey stressed but kind of proud of myself",      # mixed feelings
+    "I absolutely love getting stuck in traffic 🙃",    # sarcasm
+    "No cap this is the best day ever 😂",              # slang + positive
+    "feeling so lost rn idk what to do 😞",            # negative + slang
+    "it is what it is I guess",                         # ambiguous/neutral
+    "highkey obsessed with this new song 🔥",           # slang + positive
+    "woke up late, missed the bus, spilled my coffee 💀", # negative
+    "not sure if I'm happy or just tired 🥲",           # ambiguous/mixed
+]
+
+TRUE_LABELS += [
+    "mixed",     # "Lowkey stressed but kind of proud of myself"
+    "negative",  # "I absolutely love getting stuck in traffic 🙃" (sarcasm)
+    "positive",  # "No cap this is the best day ever 😂"
+    "negative",  # "feeling so lost rn idk what to do 😞"
+    "neutral",   # "it is what it is I guess"
+    "positive",  # "highkey obsessed with this new song 🔥"
+    "negative",  # "woke up late, missed the bus, spilled my coffee 💀"
+    "mixed",     # "not sure if I'm happy or just tired 🥲"
+]
