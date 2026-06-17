@@ -16,7 +16,7 @@ Both models were built and compared. The rule based model was developed iterativ
 Classify short text messages (social media style posts) into one of four mood labels: `positive`, `negative`, `neutral`, or `mixed`.
 
 **How it works (brief):**
-The rule based model preprocesses text (lowercasing, punctuation removal, emoji preservation, repeated-character normalization), then scores each token: positive words add +1, negative words subtract −1, emojis add ±2, and negation words (e.g. "not", "never") flip the sign of the next word. If both positive and negative signals are present, the label is `mixed`; otherwise the sign of the total score determines the label.
+The rule based model preprocesses each post into tokens, assigns every token a sentiment weight, sums them into a score, and maps that score (plus a `mixed` check) to a label. The full scoring rules are in §3.
 
 The ML model converts each post into a bag-of-words vector using `CountVectorizer`, then fits a `LogisticRegression` classifier on those vectors and the human-assigned labels. It learns which word combinations correlate with each label without any hand-written rules.
 
