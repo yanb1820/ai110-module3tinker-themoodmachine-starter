@@ -17,6 +17,9 @@ from dataset import POSITIVE_WORDS, NEGATIVE_WORDS
 # Words that flip the sentiment of the next word.
 _NEGATION_WORDS = {"not", "no", "never", "don't", "doesn't", "didn't", "isn't", "aren't", "wasn't", "can't", "won't"}
 
+# Text emoticons that preprocess() pads so they split into their own tokens.
+_TEXT_EMOTICONS = (":)", ":-)", ":(", ":-(")
+
 # Emoji / text-emoticon sentiment signals.
 _POSITIVE_EMOJIS = {":)", ":-)", ":d", "😊", "😄", "😂", "❤️", "🔥"}
 _NEGATIVE_EMOJIS = {":(", ":-(", "😞", "😢", "😠", "🥲", "💀", "🙃"}
@@ -58,19 +61,27 @@ class MoodAnalyzer:
           - Lowercase and strip surrounding whitespace.
           - Normalize runs of a repeated character: "sooooo" -> "soo".
           - Pad text emoticons (":)", ":(") so they survive as their own tokens.
-          - Drop ASCII punctuation while keeping apostrophes (for "don't"),
-            colons (for emoticons), and any non-ASCII characters (emojis).
+          - Drop ASCII punctuation from every other token while keeping
+            apostrophes (for "don't"), colons (for ":d"), and any non-ASCII
+            characters (emojis).
         """
         cleaned = text.strip().lower()
         # Collapse 3+ repeats of a character down to 2: "sooooo" -> "soo".
         cleaned = re.sub(r'(.)\1{2,}', r'\1\1', cleaned)
         # Pad text emoticons so they become their own tokens after split.
-        for emoticon in (":)", ":-(", ":-)", ":("):
+        for emoticon in _TEXT_EMOTICONS:
             cleaned = cleaned.replace(emoticon, f" {emoticon} ")
-        # Keep word chars, whitespace, apostrophe, colon, and non-ASCII (emojis,
-        # via \u0080-\U0010FFFF); replace every other character with a space.
-        cleaned = re.sub(r"[^\w\s':\u0080-\U0010FFFF]", ' ', cleaned)
-        return cleaned.split()
+
+        tokens: List[str] = []
+        for chunk in cleaned.split():
+            # Emoticons skip punctuation stripping, which would remove ")" and "(".
+            if chunk in _TEXT_EMOTICONS:
+                tokens.append(chunk)
+                continue
+            # Keep word chars, apostrophe, colon, and non-ASCII (emojis, via
+            # \u0080-\U0010FFFF); replace every other character with a space.
+            tokens.extend(re.sub(r"[^\w':\u0080-\U0010FFFF]", ' ', chunk).split())
+        return tokens
 
     # ---------------------------------------------------------------------
     # Scoring logic
@@ -122,8 +133,10 @@ class MoodAnalyzer:
             elif weight < 0:
                 negative_hits.append(token)
 
-            score += -weight if negate_next else weight
-            negate_next = False
+            if negate_next:
+                weight = -weight
+                negate_next = False
+            score += weight
 
         return score, positive_hits, negative_hits
 
@@ -134,7 +147,7 @@ class MoodAnalyzer:
         Positive words/emojis raise the score, negative ones lower it, and a
         negation word ("not", "never", ...) flips the sign of the next token.
         """
-        score, _positive_hits, _negative_hits = self._analyze(text)
+        score, _, _ = self._analyze(text)
         return score
 
     # ---------------------------------------------------------------------
@@ -145,18 +158,11 @@ class MoodAnalyzer:
         """
         Turn the numeric score for a piece of text into a mood label.
 
-        The default mapping is:
-          - score > 0  -> "positive"
-          - score < 0  -> "negative"
-          - score == 0 -> "neutral"
-
-        We add a "mixed" label on top of the sign-based mapping: if the text
-        contains at least one positive signal AND one negative signal, it is
-        "mixed" regardless of the total score.
+        Text with both a positive and a negative signal is "mixed". Otherwise
+        the sign of the score picks "positive", "negative", or "neutral".
         """
         score, positive_hits, negative_hits = self._analyze(text)
 
-        # Both positive and negative signals present -> mixed sentiment.
         if positive_hits and negative_hits:
             return "mixed"
 
@@ -181,8 +187,4 @@ class MoodAnalyzer:
           'Score = 2 (positive: ['love', 'great'], negative: [])'
         """
         score, positive_hits, negative_hits = self._analyze(text)
-        return (
-            f"Score = {score} "
-            f"(positive: {positive_hits or '[]'}, "
-            f"negative: {negative_hits or '[]'})"
-        )
+        return f"Score = {score} (positive: {positive_hits}, negative: {negative_hits})"

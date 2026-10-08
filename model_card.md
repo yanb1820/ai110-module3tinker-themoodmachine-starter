@@ -5,8 +5,6 @@ This model card is for the Mood Machine project, which includes **two** versions
 1. A **rule based model** implemented in `mood_analyzer.py`
 2. A **machine learning model** implemented in `ml_experiments.py` using scikit learn
 
-You may complete this model card for whichever version you used, or compare both if you explored them.
-
 ## 1. Model Overview
 
 **Model type:**
@@ -113,16 +111,15 @@ Both models were evaluated on the same 14 labeled posts in `dataset.py` (trainin
 - `"No cap this is the best day ever 😂"` → `positive`: emoji 😂 scored +2 and drove the label even though "no cap" is unrecognized slang.
 
 **Examples of incorrect predictions (rule based):**
-- `"I absolutely love getting stuck in traffic 🙃"` → predicted `mixed`, true `negative`: "love" hits the positive list, and 🙃 hits the negative emoji list, so both signals fire — the model cannot tell this is sarcasm.
+- `"I absolutely love getting stuck in traffic 🙃"` → predicted `mixed`, true `negative`. See §4b.
 
 ## 6. Limitations
 
 - **Dataset too small:** 14 examples cannot represent the diversity of real language. The ML model's 100% training accuracy is a sign of memorization, not learning.
 - **No test set:** both models are evaluated on their own training data, so reported accuracy is optimistic.
-- **Sarcasm is undetectable** with a word-list or bag-of-words approach. Detecting it requires contextual or pragmatic understanding.
-- **Vocabulary gap:** the rule based model only recognizes words explicitly listed in `POSITIVE_WORDS` and `NEGATIVE_WORDS`. Synonyms, slang, and novel expressions score zero.
+- **Sarcasm and vocabulary gaps:** see the rule based weaknesses in §3.
 - **Short text only:** both models were designed and tested on posts under 15 words. Longer, more complex sentences are untested.
-- **Cultural and linguistic bias:** the dataset reflects one informal English register. Posts in other dialects, languages, or cultural contexts would likely score poorly.
+- **Cultural and linguistic bias:** see §6b.
 
 ## 6b. Bias and Scope
 
